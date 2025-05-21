@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Price Comparison App',
       debugShowCheckedModeBanner: false,
-      home: const ClassifierScreen(),
+      home: const FashionClassifierScreen(),
     );
   }
 }

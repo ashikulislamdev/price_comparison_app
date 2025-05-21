@@ -1,114 +1,60 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:price_comparison_app/core/utils/image_utils.dart';
-import 'package:price_comparison_app/model/interpreter_service.dart';
+import '../core/utils/image_utils.dart';
+import '../widgets/image_display.dart';
 
-class ClassifierScreen extends StatefulWidget {
-  const ClassifierScreen({Key? key}) : super(key: key);
+class FashionClassifierScreen extends StatefulWidget {
+  const FashionClassifierScreen({super.key});
 
   @override
-  State<ClassifierScreen> createState() => _ClassifierScreenState();
+  State<FashionClassifierScreen> createState() => _FashionClassifierScreenState();
 }
 
-class _ClassifierScreenState extends State<ClassifierScreen> {
-  final ImagePicker _picker = ImagePicker();
-  XFile? _selectedImage;
-  String? _predictionLabel;
+class _FashionClassifierScreenState extends State<FashionClassifierScreen> {
+  File? _image;
+  String? _prediction;
   bool _isLoading = false;
 
-  late InterpreterService _interpreterService;
-  List<String> labels = []; 
-
-  @override
-  void initState() {
-    super.initState();
-    _loadInterpreter();
-  }
-
-  Future<void> _loadInterpreter() async {
-    _interpreterService = InterpreterService();
-    await _interpreterService.loadModel();
-
-    labels = await _interpreterService.loadLabels();
-
-    setState(() {});
-  }
-
   Future<void> _pickImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-
-    if (image != null) {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
       setState(() {
-        _selectedImage = image;
+        _image = File(picked.path);
+        _prediction = null;
       });
-
-      await _classifyImage(image);
+      _sendImageToAPI(File(picked.path));
     }
   }
 
-  Future<void> _classifyImage(XFile imageFile) async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    final file = File(imageFile.path);
-
-    final inputShape = _interpreterService.getInputShape();
-    final height = inputShape[1];
-    final width = inputShape[2];
-
-    final inputBuffer = await ImageUtils.preprocess(
-      file,
-      height,
-      width,
-    );
-
-    final predictions = await _interpreterService.predict(inputBuffer, labels);
-
-    setState(() {
-      _predictionLabel = predictions.isNotEmpty ? predictions.first.label : null;
-      _isLoading = false;
-    });
+  Future<void> _sendImageToAPI(File imageFile) async {
+    setState(() => _isLoading = true);
+    try {
+      final prediction = await ImageUtils.sendToPredictionAPI(imageFile);
+      setState(() => _prediction = prediction);
+    } catch (e) {
+      setState(() => _prediction = 'Error: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Image Classifier'),
-      ),
+      appBar: AppBar(title: const Text('Fashion Classifier')),
       body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              if (_selectedImage != null)
-                Image.file(
-                  File(_selectedImage!.path),
-                  height: 250,
-                )
-              else
-                const Placeholder(
-                  fallbackHeight: 250,
-                ),
-              const SizedBox(height: 20),
-              _isLoading
-                  ? const CircularProgressIndicator()
-                  : Text(
-                      _predictionLabel != null
-                          ? 'Prediction: $_predictionLabel'
-                          : 'No prediction yet.',
-                      style: const TextStyle(fontSize: 20),
-                    ),
-              const Spacer(),
-              ElevatedButton(
-                onPressed: _pickImage,
-                child: const Text('Pick an Image'),
-              ),
-            ],
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ImageDisplay(imageFile: _image),
+            const SizedBox(height: 20),
+            ElevatedButton(onPressed: _pickImage, child: const Text('Upload Image')),
+            const SizedBox(height: 20),
+            if (_isLoading) const CircularProgressIndicator(),
+            if (_prediction != null) Text('Prediction: $_prediction', style: const TextStyle(fontSize: 16)),
+          ],
         ),
       ),
     );

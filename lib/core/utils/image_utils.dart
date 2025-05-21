@@ -1,36 +1,27 @@
-import 'dart:typed_data';
+import 'dart:convert';
 import 'dart:io';
-import 'package:image/image.dart' as img;
+import 'package:http/http.dart' as http;
 
 class ImageUtils {
-  static const int imgSize = 96; // or your model's input size (adjust if needed)
+  static Future<String> sendToPredictionAPI(File imageFile) async {
+    final uri = Uri.parse("http://192.168.1.100:8000/predict"); // pc ip to test on phone
+    final request = http.MultipartRequest("POST", uri);
+    request.files.add(await http.MultipartFile.fromPath("file", imageFile.path));
 
-  static Uint8List _imageToByteBuffer(img.Image image, int height, int width) {
-    final resizedImage = img.copyResize(image, width: width, height: height);
-    final buffer = Float32List(height * width * 3);
-
-    int index = 0;
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        final pixel = resizedImage.getPixel(x, y);
-
-        buffer[index++] = pixel.r / 255.0;
-        buffer[index++] = pixel.g / 255.0;
-        buffer[index++] = pixel.b / 255.0;
+    try {
+      final response = await request.send();
+      if (response.statusCode == 200) {
+        final body = await response.stream.bytesToString();
+        // print("Response body: $body");
+        final data = json.decode(body);
+        // return predicted class and confidence
+        return "${data['predicted_class']} (${data['confidence']}%)";
+      } else {
+        throw Exception("API Error: ${response.statusCode}");
       }
+    } catch (e) {
+      throw Exception("Connection error: $e");
     }
-    return buffer.buffer.asUint8List();
-  }
-
-  static Future<Uint8List> preprocess(File imageFile, int height, int width) async {
-    final imageBytes = await imageFile.readAsBytes();
-    final decodeImage = img.decodeImage(imageBytes);
-    if (decodeImage == null) {
-      throw Exception("Failed to decode image");
-    }
-
-    return _imageToByteBuffer(decodeImage, height, width);
+    
   }
 }
-
-
