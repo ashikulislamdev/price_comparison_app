@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 
 class ImageUtils {
   static Future<String> sendToPredictionAPI(File imageFile) async {
-    final uri = Uri.parse("http://192.168.1.100:8000/predict"); // pc ip to test on phone
+    final uri = Uri.parse("http://192.168.52.92:8001/predict"); // pc ip to test on phone
     final request = http.MultipartRequest("POST", uri);
     request.files.add(await http.MultipartFile.fromPath("file", imageFile.path));
 
@@ -15,7 +15,7 @@ class ImageUtils {
         // print("Response body: $body");
         final data = json.decode(body);
         // return predicted class and confidence
-        return "${data['predicted_class']} (${data['confidence']}%)";
+        return "${data['predicted_class']}"; // (${data['confidence']}%)
       } else {
         throw Exception("API Error: ${response.statusCode}");
       }
