@@ -1,16 +1,34 @@
-# price_comparison_app
+# 📱 Price Comparison Mobile App
 
-A new Flutter project.
+This is the Flutter-based mobile application for the **Image-Based Price Comparison System**.
 
-## Getting Started
+## 🎯 Overview
 
-This project is a starting point for a Flutter application.
+This app lets users upload an image of a fashion product (e.g., bag, shoe, shirt). The app uses a trained deep learning model to detect the product category, then queries multiple online stores (Amazon, Walmart, eBay, JD) to find and display the best-priced options.
 
-A few resources to get you started if this is your first Flutter project:
+- 🧠 Built with TensorFlow Lite (model inference)
+- 📡 Integrates with backend FastAPI for classification and product data
+- 📷 Uses image picker to classify product from the gallery
+- 🛒 Lists top results from Amazon API + local mock APIs
+- 🔎 Results are filterable by store and sorted by price
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## 📸 Demo Video
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+📽️ Watch here: [https://youtu.be/vfC0H4d8Rfc](https://youtu.be/vfC0H4d8Rfc)
+
+## 🔗 Related Repository
+
+Backend: [price_comparison_backend](https://github.com/ashikulislamdev/price_comparison_backend)
+
+
+## 🚀 Setup Instructions
+
+1. Clone the repo
+2. Run `flutter pub get`
+3. Update the API IP address based on your backend host in `core/constants/ncc.dart`
+4. Connect your Android device or emulator
+5. Run `flutter run`
+
+## 📘 Report
+
+Read the full implementation paper (PDF): [Price_Comparison_System_Based_on_Image_Recognition.pdf](./Price_Comparison_System_Based_on_Image_Recognition.pdf)
